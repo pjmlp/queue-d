@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="description" content="Shows how to resolve an exercise about memory manipulation and queue handling" />
+  <meta name="keywords" content="D, queue handling, memory management" />
+  <meta name="author" content="Paulo Pinto" />
+</head> 
+<article>
+  <section>
+   <h1>Introduction</h1>
+   <p>This application is the attempt to resolve an exercise that was posted
+   online by a well known game studio.</p>
+   <p>It is by no means the perfect solution. I think that it works the was
+   it was intended for the challenge, but since I did not apply for the job,
+   I cannot garantee it is the desired one.</p>
+  </section>
+  <section>
+   <h1>Challenge</h1>
+   <p>The original challenge is as follows:</p>
+   <p>The problem is to write a set of functions to manage a variable number of byte queues, each with
+   variable length, in a small, fixed amount of memory. You should provide implementations of the
+   following four functions:</p>
+   <p><pre>
+Q * create_queue(); //Creates a FIFO byte queue, returning a handle to it.
+void destroy_queue(Q * q); //Destroy an earlier created byte queue.
+void enqueue_byte(Q * q, unsigned char b); //Adds a new byte to a queue.
+unsigned char dequeue_byte(Q * q); //Pops the next byte off the FIFO queue.
+</pre></p>
+    <p>So, the output from the following set of calls:</p>
+<p><pre>
+Q * q0 = create_queue();
+enqueue_byte(q0, 0);
+enqueue_byte(q0, 1);
+Q * q1 = create_queue();
+enqueue_byte(q1, 3);
+enqueue_byte(q0, 2);
+enqueue_byte(q1, 4);
+printf("%d ", dequeue_byte(q0));
+printf("%d\n", dequeue_byte(q0));
+enqueue_byte(q0, 5);
+enqueue_byte(q1, 6);
+printf("%d ", dequeue_byte(q0));
+printf("%d\n", dequeue_byte(q0));
+destroy_queue(q0);
+printf("%d ", dequeue_byte(q1));
+printf("%d ", dequeue_byte(q1));
+printf("%d\n", dequeue_byte(q1));
+destroy_queue(q1);
+</pre></p>
+<p>should be:</p>
+<p><pre>
+0 1
+2 5
+3 4 6
+</pre></p>
+<p>You can define the type Q to be whatever you want.</p>
+
+<p>Your code is not allowed to call malloc() or other heap management routines. Instead, all storage (other than local variables in your functions) must be within a provided array:</p>
+
+<p><pre>unsigned char data[2048];</pre></p>
+
+<p>Memory efficiency is important. On average while your system is running, there will be about 15 queues with an average of 80 or so bytes in each queue. Your functions may be asked to create a larger number of queues with less bytes in each. Your functions may be asked to create a smaller number of queues with more bytes in each.</p>
+
+<p>Execution speed is important. Worst-case performance when adding and removing bytes is more important than average-case performance.</p>
+
+<p>If you are unable to satisfy a request due to lack of memory, your code should call a provided failure function, which will not return:</p>
+
+<p><pre>void on_out_of_memory();</pre></p>
+
+<p>If the caller makes an illegal request, like attempting to dequeue a byte from an empty queue, your code should call a provided failure function, which will not return:</p>
+
+<p><pre>void on_illegal_operation();</pre></p>
+
+<p>There may be spikes in the number of queues allocated, or in the size of an individual queue. Your code should not assume a maximum number of bytes in a queue (other than that imposed by the total amount of memory available, of course!) You can assume that no more than 64 queues will be created at once.</p>
+
+  </section>  
+  <section>
+   <h1>Solution Overview</h1>
+   <p>The solution is implemented in D in the <i>queue.d</i> file.</p>
+   <p>Given the amount of available memory (2048 bytes), and assuming that an int takes 4 bytes,
+   we can use an int cell for storing the value and the pointer for the next queue element.</p>
+   <p>From the API list, we are only storing byte values, which leaves us with 3 bytes for the pointer
+   part. This allows us to index up to 4096 bytes, which is much more than the 2048 bytes we have available. On
+   the other hand we are able to manipulate the queue using a word size, which is register and memory bus
+   friendly, hence fulfilling the memory efficiency and execution speed requirements, as shown in figure 2.</p>
+   <p>The solution is thus to start by having a pointer to the initial position of the memory and assume the
+   complete memory storage is available, as shown in the figure 1.</p>
+   <p>
+     <figure>
+       <img src="figure-1.png"/>
+       <figcaption>Figure 1, the initial state of the raw memory used to store the queues.</figcaption>
+     </figure>
+   </p>
+   <p>
+     <figure>
+       <img src="figure-2.png"/>
+       <figcaption>Figure 2, the contents of a cell element when it has a value.</figcaption>
+     </figure>
+   </p>
+   <p>When a new element is allocated, the free pointer advances 4 bytes and the cell gets assigned the desired value. In case
+   the element is being assigned to a queue, which has already some elements, the last element gets ajusted to point to the new
+   cell as expected.</p>
+   <p>In the case the queue is being allocated, a small optimization is made, where the next element index has the value <i>0xFFF</i>,
+   which is invalid in our case (much bigger than 4096), this way the <code>enqueue_byte()</code> knows it does not to allocate a new
+   cell on the first value.</p>
+   <p>The next figure shows how the memory looks like after a few allocations.</p>
+   <p>
+     <figure>
+       <img src="figure-3.png"/>
+       <figcaption>Figure 3.</figcaption>
+     </figure>
+   </p>
+   <p>When memory cells get relesed due to a  <code>dequeue_byte()</code> or <code>destroy_queue()</code> invocation, the
+   released cells are added to the free list and the free pointer is adjusted acordingly, as shown on figure 4.</p>
+   <p>
+     <figure>
+       <img src="figure-4.png"/>
+       <figcaption>Figure 4.</figcaption>
+     </figure>
+   </p>   
+  </section> 
+  <section>
+   <h1>Conclusion</h1>
+   <p>This is certanly not the best solution, but it shows how the exercise could eventually be solved. Although this type
+   of exercise might seem useless in the time that GC has become mainstream, when there is the need to code close to the
+   machine, such tricks are always required.</p>
+  </section>  
+</article>
+</html>
