@@ -99,12 +99,23 @@ void on_illegal_operation() {
   exit(-2);
 }
 
+/**
+ * Makes sure all required data structures have
+ * a proper value.
+ */
 void initialize_storage() {
   memset(data.ptr, 0, MAX_STORAGE);
   int* free_list = cast(int*)(data);
   *free_list = int.sizeof; // Make the free list point for the first free element
 }
 
+/**
+ * Allocates a fixed block of memory for the queue.
+ * If no memory is available, the function on_out_of_memory is called().
+ *
+ * Returns:
+ *  A new initialized memory block.
+ */
 void* allocate_storage() {
   int* free_list = cast(int*)(data);
   if (*free_list == 0) {
@@ -122,14 +133,38 @@ void* allocate_storage() {
   return cell;
 }
 
-void release_storage(void* mem) {
+/**
+ * Returns the memory block back to the free list.
+ *
+ * Params:
+ *  mem = Memory block to return. Cannot be null.
+ */
+void release_storage(void* mem)
+in
+{
+  assert (mem != null);
+}
+body
+{
   int* free_list = cast(int*)(data);
   int* cell = cast(int*)(mem);
   *cell = *free_list;
   *free_list = cast(byte*)(mem) - data.ptr;
 }
 
-Q * create_queue() {
+/**
+ * Initializes a new queue
+ *
+ * Return:
+ *  A new object representing a queue.
+ */
+Q* create_queue()
+out(result)
+{
+  assert (result != null);
+}
+body
+{
   int *queue = cast(int*)(allocate_storage());
   *queue = 0;
   return queue;
@@ -147,6 +182,7 @@ void destroy_queue(Q * q) {
   
   release_storage(q);
 }
+
 
 void enqueue_byte(Q * q, byte b)
 in
