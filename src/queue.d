@@ -44,7 +44,7 @@ alias void Q;
  * Params:
  *  q = The queue to dump. Cannot be null.
  */
-void dump_queue (Q *q)
+void dumpQueue (Q *q)
 in
 {
   assert(q != null);
@@ -68,33 +68,42 @@ body
 }
 
 void main() {
-  initialize_storage();
-  Q * q0 = create_queue();
-  enqueue_byte(q0, 0);
-  enqueue_byte(q0, 1);
-  Q * q1 = create_queue();
-  enqueue_byte(q1, 3);
-  enqueue_byte(q0, 2);
-  enqueue_byte(q1, 4);
-  writef("%d ", dequeue_byte(q0));
-  writef("%d\n", dequeue_byte(q0));
-  enqueue_byte(q0, 5);
-  enqueue_byte(q1, 6);
-  writef("%d ", dequeue_byte(q0));
-  writef("%d\n", dequeue_byte(q0));
-  destroy_queue(q0);
-  writef("%d ", dequeue_byte(q1));
-  writef("%d ", dequeue_byte(q1));
-  writef("%d\n", dequeue_byte(q1));
-  destroy_queue(q1);
+  initializeStorage();
+  Q * q0 = createQueue();
+  enqueueByte(q0, 0);
+  enqueueByte(q0, 1);
+  Q * q1 = createQueue();
+  enqueueByte(q1, 3);
+  enqueueByte(q0, 2);
+  enqueueByte(q1, 4);
+  writef("%d ", dequeueByte(q0));
+  writef("%d\n", dequeueByte(q0));
+  enqueueByte(q0, 5);
+  enqueueByte(q1, 6);
+  writef("%d ", dequeueByte(q0));
+  writef("%d\n", dequeueByte(q0));
+  destroyQueue(q0);
+  writef("%d ", dequeueByte(q1));
+  writef("%d ", dequeueByte(q1));
+  writef("%d\n", dequeueByte(q1));
+  destroyQueue(q1);
 }
 
-void on_out_of_memory() {
+
+/**
+ * Called by the queue routines when the storage is
+ * exhausted. It exits to the operating system.
+ */
+void onOutOfMemory() {
   writef("Not enough memory available. Exiting application\n");
   exit(-1);
 }
 
-void on_illegal_operation() {
+/**
+ * Called by the queue routines when the an invalid
+ * operation is attempted. It exits to the operating system.
+ */
+void onIllegalOperation() {
   writef("An invalid queue operation has been requested. Exiting application\n");
   exit(-2);
 }
@@ -103,7 +112,7 @@ void on_illegal_operation() {
  * Makes sure all required data structures have
  * a proper value.
  */
-void initialize_storage() {
+void initializeStorage() {
   memset(data.ptr, 0, MAX_STORAGE);
   int* free_list = cast(int*)(data);
   *free_list = int.sizeof; // Make the free list point for the first free element
@@ -111,15 +120,15 @@ void initialize_storage() {
 
 /**
  * Allocates a fixed block of memory for the queue.
- * If no memory is available, the function on_out_of_memory is called().
+ * If no memory is available, the function onOutOfMemory is called().
  *
  * Returns:
  *  A new initialized memory block.
  */
-void* allocate_storage() {
+void* allocateStorage() {
   int* free_list = cast(int*)(data);
   if (*free_list == 0) {
-    on_out_of_memory(); // cannot fullfil request
+    onOutOfMemory(); // cannot fullfil request
   }
   
   int *cell = cast(int*)(data.ptr + *free_list);
@@ -139,7 +148,7 @@ void* allocate_storage() {
  * Params:
  *  mem = Memory block to return. Cannot be null.
  */
-void release_storage(void* mem)
+void releaseStorage(void* mem)
 in
 {
   assert (mem != null);
@@ -149,7 +158,7 @@ body
   int* free_list = cast(int*)(data);
   int* cell = cast(int*)(mem);
   *cell = *free_list;
-  *free_list = cast(byte*)(mem) - data.ptr;
+  *free_list = cast(int)(cast(byte*)(mem) - data.ptr);
 }
 
 /**
@@ -158,33 +167,53 @@ body
  * Return:
  *  A new object representing a queue.
  */
-Q* create_queue()
+Q* createQueue()
 out(result)
 {
   assert (result != null);
 }
 body
 {
-  int *queue = cast(int*)(allocate_storage());
+  int *queue = cast(int*)(allocateStorage());
   *queue = 0;
   return queue;
 }
 
-void destroy_queue(Q * q) {
+/**
+ * Destroys the queue by making its space available
+ * for further operations.
+ *
+ * Params:
+ *  q = The queue to dump. Cannot be null.
+ */
+void destroyQueue(Q * q)
+in
+{
   assert(q != null);
+}
+body
+{
   int *queue = cast(int*)(q);
   int next = *queue & LOWER_BITS;
   while (next != 0) {
     byte *mem = data.ptr + next;
     next = *(cast(int*)(mem)) & LOWER_BITS;
-    release_storage(mem);
+    releaseStorage(mem);
   }
   
-  release_storage(q);
+  releaseStorage(q);
 }
 
-
-void enqueue_byte(Q * q, byte b)
+/**
+ * Places a byte into the queue.
+ * If the storage is exhausted the function
+ * onOutOfMemory() will be called.
+ *
+ * Params:
+ *  q = The queue to dump. Cannot be null.
+ *  b = byte to enqueue.
+ */
+void enqueueByte(Q * q, byte b)
 in
 {
   assert(q != null);
@@ -206,7 +235,7 @@ body
         next = *(cast(int*)(mem)) & LOWER_BITS;
       }
     }
-    int *cell = cast(int*)(allocate_storage());
+    int *cell = cast(int*)(allocateStorage());
     *cell = b << BIT_SHIFT;
     int *last_cell;
     if (previous == 0) {
@@ -214,11 +243,22 @@ body
     } else {
       last_cell = cast(int*)(data.ptr + previous);
     }
-    *last_cell = (*last_cell & 0xF000) | (cast(byte*)(cell) - data.ptr);
+    *last_cell = cast(int)((*last_cell & 0xF000) | (cast(byte*)(cell) - data.ptr));
   }
 }
 
-byte dequeue_byte(Q * q)
+/**
+ * Removes a byte from the queue.
+ * If the queue is empty the function
+ * onIllegalOperation() will be called.
+ *
+ * Params:
+ *  q = The queue to dump. Cannot be null.
+ *
+ * Return:
+ *  The byte at the top of the queue.
+ */
+byte dequeueByte(Q * q)
 in
 {
   assert(q != null);
@@ -227,7 +267,7 @@ body
 {
   int *queue = cast(int*)(q);
   if (*queue == 0) {
-    on_illegal_operation();
+    onIllegalOperation();
   }
   byte value = cast(byte)(*queue >> BIT_SHIFT);
   
@@ -235,7 +275,7 @@ body
   if (next != 0 && next != LOWER_BITS) {
     int *cell = cast(int*)(data.ptr + next);
     *queue = *cell;
-    release_storage(cell);
+    releaseStorage(cell);
   } else {
     *queue = 0;
   }
