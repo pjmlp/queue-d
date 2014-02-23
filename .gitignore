@@ -1,2 +1,5 @@
 bin/Debug/queue-d.exe
 obj/Debug/queue-d.obj
+*.exe
+*.obj
+*.lib
