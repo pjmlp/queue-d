@@ -64,7 +64,7 @@ body
     writef ("(%d, %d) ", *queue >> BIT_SHIFT, next);
     
   }
-  writef("\n");
+  writeln;
 }
 
 void main() {
@@ -85,7 +85,7 @@ void main() {
   destroyQueue(q0);
   writef("%d ", dequeueByte(q1));
   writef("%d ", dequeueByte(q1));
-  writef("%d\n", dequeueByte(q1));
+  writefln("%d", dequeueByte(q1));
   destroyQueue(q1);
 }
 
@@ -93,6 +93,9 @@ void main() {
 /**
  * Called by the queue routines when the storage is
  * exhausted. It exits to the operating system.
+ * 
+ * On a real system, this would be an callback given into this
+ * module.
  */
 void onOutOfMemory() {
   writef("Not enough memory available. Exiting application\n");
@@ -102,6 +105,9 @@ void onOutOfMemory() {
 /**
  * Called by the queue routines when the an invalid
  * operation is attempted. It exits to the operating system.
+ * 
+ * On a real system, this would be an callback given into this
+ * module.
  */
 void onIllegalOperation() {
   writef("An invalid queue operation has been requested. Exiting application\n");
@@ -113,6 +119,7 @@ void onIllegalOperation() {
  * a proper value.
  */
 void initializeStorage() {
+
   memset(data.ptr, 0, MAX_STORAGE);
   int* free_list = cast(int*)(data);
   *free_list = int.sizeof; // Make the free list point for the first free element
@@ -125,7 +132,13 @@ void initializeStorage() {
  * Returns:
  *  A new initialized memory block.
  */
-void* allocateStorage() {
+void* allocateStorage()
+out(result)
+{
+	assert(result != null);
+}
+body
+{
   int* free_list = cast(int*)(data);
   if (*free_list == 0) {
     onOutOfMemory(); // cannot fullfil request
