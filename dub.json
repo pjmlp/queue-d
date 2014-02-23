@@ -1,1 +1,8 @@
-
+{
+	"name": "queue-d",
+	"description": "A small example on how to do constrained memory management, taken from a C++ exercise.",
+	"authors": ["Paulo Pinto"],
+	"homepage": "https://github.com/pjmlp/queue-d",
+	"license": "GPL-2.0",
+	"targetType": "executable"
+}
