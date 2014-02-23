@@ -3,5 +3,5 @@ with manual memory management, taken from a job advertisement for a game develop
 
  The original coding was done in C++, available at https://github.com/pjmlp/queue.
 
- To compile the program just call invoke make on the top level directory. Aftwerwards
-you can call the queue executable.
+ To compile and execute the program just call invoke dub on the top level directory other option is
+to make use of MonoDevelop with the MonoD plugin installed.
