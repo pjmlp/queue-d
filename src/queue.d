@@ -18,8 +18,8 @@
 */
 
 import std.stdio;
-import std.c.stdlib;
-import std.c.string;
+import core.stdc.stdlib;
+import core.stdc.string;
 
 /// Maximum available storage size
 const int MAX_STORAGE = 2048;
@@ -32,7 +32,7 @@ const int BIT_SHIFT = 12;
 const int LOWER_BITS = 0x0FFF;
 
 /// storage area
-byte data[MAX_STORAGE];
+byte[MAX_STORAGE] data;
 
 /// The queue data type
 alias void Q;
