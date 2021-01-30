@@ -35,7 +35,7 @@ const int LOWER_BITS = 0x0FFF;
 byte[MAX_STORAGE] data;
 
 /// The queue data type
-alias void Q;
+alias Q = void;
 
 /**
  * Helper function. Dumps the queue contents in a sequence
@@ -284,7 +284,7 @@ body
   }
   byte value = cast(byte)(*queue >> BIT_SHIFT);
   
-  int next = *queue & LOWER_BITS;
+  const next = *queue & LOWER_BITS;
   if (next != 0 && next != LOWER_BITS) {
     int *cell = cast(int*)(data.ptr + next);
     *queue = *cell;
