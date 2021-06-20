@@ -49,7 +49,7 @@ in
 {
   assert(q != null);
 }
-body
+do
 {
   writef ("Printing Queue Debugging Info\n");
   int *queue = cast(int*)(q);
@@ -137,7 +137,7 @@ out(result)
 {
 	assert(result != null);
 }
-body
+do
 {
   int* free_list = cast(int*)(data);
   if (*free_list == 0) {
@@ -166,7 +166,7 @@ in
 {
   assert (mem != null);
 }
-body
+do
 {
   int* free_list = cast(int*)(data);
   int* cell = cast(int*)(mem);
@@ -185,7 +185,7 @@ out(result)
 {
   assert (result != null);
 }
-body
+do
 {
   int *queue = cast(int*)(allocateStorage());
   *queue = 0;
@@ -204,7 +204,7 @@ in
 {
   assert(q != null);
 }
-body
+do
 {
   int *queue = cast(int*)(q);
   int next = *queue & LOWER_BITS;
@@ -231,7 +231,7 @@ in
 {
   assert(q != null);
 }
-body
+do
 {
   int *queue = cast(int*)(q);
   if (*queue == 0) {
@@ -276,7 +276,7 @@ in
 {
   assert(q != null);
 }
-body
+do
 {
   int *queue = cast(int*)(q);
   if (*queue == 0) {
