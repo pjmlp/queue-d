@@ -3,3 +3,4 @@ obj/Debug/queue-d.obj
 *.exe
 *.obj
 *.lib
+.dub
