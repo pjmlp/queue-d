@@ -87,27 +87,27 @@ From the API list, we are only storing byte values, which leaves us with 3 bytes
    
 The solution is thus to start by having a pointer to the initial position of the memory and assume the complete memory storage is available, as shown in the figure 1.
 
-===[Figure 1, the initial state of the raw memory used to store the queues.]   
-![Figure 1, the initial state of the raw memory used to store the queues.](/compilers/tutorials/queue-d/figure-1.png)
-===
+![Figure 1, the initial state of the raw memory used to store the queues.](figure-1.png)
 
-===[Figure 2, the contents of a cell element when it has a value.]
-![Figure 2, the contents of a cell element when it has a value.](/compilers/tutorials/queue-d/figure-2.png)
-===
+Figure 1, the initial state of the raw memory used to store the queues.
+
+![Figure 2, the contents of a cell element when it has a value.](figure-2.png)
+
+Figure 2, the contents of a cell element when it has a value.
    
 When a new element is allocated, the free pointer advances 4 bytes and the cell gets assigned the desired value. In case the element is being assigned to a queue, which has already some elements, the last element gets ajusted to point to the new cell as expected.
    
 In the case the queue is being allocated, a small optimization is made, where the next element index has the value _0xFFF_, which is invalid in our case (much bigger than 4096), this way the _enqueue_byte()_ knows it does not to allocate a new cell on the first value.The next figure shows how the memory looks like after a few allocations.
 
-===[Figure 3.]
-![Figure 3.](/compilers/tutorials/queue-d/figure-3.png)
-===
+![Figure 3.](figure-3.png)
+
+Figure 3.
    
 When memory cells get relesed due to a  _dequeue_byte()_ or _destroy_queue()_ invocation, the released cells are added to the free list and the free pointer is adjusted acordingly, as shown on figure 4.
 
-===[Figure 4.]
-![Figure 4.](/compilers/tutorials/queue-d/figure-4.png)
-===
+![Figure 4.](figure-4.png)
+
+Figure 4.
 
 # Conclusion
 
